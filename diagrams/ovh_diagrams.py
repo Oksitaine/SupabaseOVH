@@ -6,6 +6,8 @@ from diagrams.k8s.network import SVC
 from diagrams.k8s.compute import Deploy, Pod, RS
 from diagrams.k8s.infra import Node
 from diagrams.onprem.database import PostgreSQL
+from diagrams.gcp.compute import ComputeEngine
+from diagrams.aws.storage import ElasticBlockStoreEBSVolume
 
 
 with Diagram("Kubernetes without AUTO-SCALLING", show=False, direction="TB"):
@@ -18,38 +20,35 @@ with Diagram("Kubernetes without AUTO-SCALLING", show=False, direction="TB"):
         service_loadbalancer = SVC("Load Balancer")
 
 
-        with Cluster("Node Front End"):
+        with Cluster("KUBERNETES CLUSTER"):
             node_fe = Node("Discovery Node")
             nextjs = NextJs("Nextjs 15")
             pods = [
                 Pod("Pod1"),
                 Pod("Pod2"),
-                Pod("Pod3")
+                Pod("Pod3"),
+                Pod("Pod4"),
+                Pod("Pod5")
             ]
 
-            nextjs >> pods >> node_fe
-
-        service_loadbalancer >> node_fe
-        service_loadbalancer << node_fe
-
-        with Cluster("Node Supabase"):
-            node_sb = Node("Discovery Node")
-            sgbd = PostgreSQL("Supabase SH")
-
-            pods = Pod("Pod1")
-
-            sgbd >> pods >> node_sb
+            node_fe >> pods << nextjs
         
-        sa >> Edge(color="blue", style="dotted") >> deploy >> Edge(color="blue", style="dotted") >> rs >> Edge(color="blue", style="dotted") >> [
-            node_fe,
-            node_sb
-        ]
-        cluster_id = SVC("ClusterIP")
+        sa >> rs >> deploy >> node_fe
+        service_loadbalancer >> node_fe
 
-        node_fe - Edge(color="red") - cluster_id >> Edge(color="red") >> node_sb
-        cluster_id - Edge(color="red") - node_sb
-        cluster_id >> Edge(color="red") >> node_fe
 
+        with Cluster("VM INSTANCE"):
+            supabase = PostgreSQL("Supabase")
+            vm = ComputeEngine("VM")
+
+            vm >> supabase >> vm
+
+            node_fe >> vm
+
+        with Cluster("S3 STORAGE (AUTO SCALE)"):
+            s3 = ElasticBlockStoreEBSVolume("S3 STORAGE")
+
+            s3 >> vm >> s3
 
 
     user >> service_loadbalancer
