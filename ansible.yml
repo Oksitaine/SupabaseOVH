@@ -1,0 +1,114 @@
+# ansible-lint disable
+# code: language=ansible
+- name: "VM for supabase"
+  vars:
+    ansible_ssh_common_args: '-o StrictHostKeyChecking=no'
+  hosts: all
+  become: true
+  become_method: ansible.builtin.sudo
+  pre_tasks:
+    - name: Update APT cache
+      ansible.builtin.apt:
+        update_cache: true
+
+  tasks:
+    #########################
+    # INSTALL DOCKER
+    #########################
+    - name: Install prerequisite packages (ca-certificates and curl)
+      ansible.builtin.apt:
+        name:
+          - ca-certificates
+          - curl
+        state: present
+
+    - name: Create the keyring directory for Docker
+      ansible.builtin.file:
+        path: /etc/apt/keyrings
+        state: directory
+        mode: '0755'
+        owner: root
+        group: root
+
+    - name: Add Docker's official GPG key
+      ansible.builtin.shell: curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc
+
+    - name: Ensure the Docker GPG key is readable by all users
+      # This task makes the file readable (chmod a+r) by setting mode 0644
+      ansible.builtin.file:
+        path: /etc/apt/keyrings/docker.asc
+        mode: '0644'
+        owner: root
+        group: root
+
+    - name: Add Docker repository to APT sources 
+      ansible.builtin.shell: |
+        set -o pipefail
+        echo \
+        "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu \
+        $(. /etc/os-release && echo "${UBUNTU_CODENAME:-$VERSION_CODENAME}") stable" | \
+        sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+      args:
+        executable: /bin/bash
+
+    - name: Update APT cache after adding Docker repository
+      ansible.builtin.apt:
+        update_cache: true
+
+    - name: Install Docker packages
+      ansible.builtin.apt:
+        name:
+          - docker-ce
+          - docker-ce-cli
+          - docker-buildx-plugin
+          - containerd.io
+          - docker-compose-plugin
+        state: present
+
+    #########################
+    # INSTALL SUPABASE
+    #########################
+
+    - name: Clone Supabase with a specific repository
+      ansible.builtin.git:
+        repo: https://github.com/supabase/supabase.git
+        version: "122fdea3f15d73f8c3212ec341daac3b90451f42"
+        clone: true
+        depth: 1
+        force: true
+        dest: "/home/ubuntu/supabase"
+
+    - name: Copy the .env for Supabase Self Host
+      ansible.builtin.copy:
+        dest: "/home/ubuntu/supabase/docker/.env"
+        src: "/Users/wglint/Desktop/ovh/.env"
+        owner: ubuntu
+        group: ubuntu
+        mode: '0600'
+
+    - name: Copy the docker-compose for Supabase Self Host
+      ansible.builtin.copy:
+        dest: "/home/ubuntu/supabase/docker/docker-compose.yml"
+        src: "/Users/wglint/Desktop/ovh/docker-compose.yml"
+        owner: ubuntu
+        group: ubuntu
+        mode: '0600'
+
+    - name: Login to docker (ansible-galaxy collection install community.docker)
+      community.docker.docker_login:
+        username: "{{ docker_username }}"
+        password: "{{ docker_password }}"
+
+    - name: Pull all the image with docker compose
+      ansible.builtin.shell: docker compose pull
+      args:
+        chdir: "/home/ubuntu/supabase/docker"
+
+    - name: Start Supabase services
+      ansible.builtin.shell: docker compose up -d
+      args:
+        chdir: "/home/ubuntu/supabase/docker"
+    
+
+    
+

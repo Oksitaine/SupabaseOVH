@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Pod
+metadata: 
+  name: nextself
+  labels:
+    app: nextself
+    type: frontend
+    version: 1.0.0
+spec:
+  containers:
+    - name: nextself
+      imagePullPolicy: Always
+      image: wglint/nextself
+      ports:
+        - containerPort: 3000

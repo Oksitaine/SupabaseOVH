@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: svc-nodeport-frontend
+spec:
+  type: LoadBalancer
+  ports:
+    - port: 80
+      targetPort: 3000
+      nodePort: 31111
+  selector:
+    app: nextself
+    version: 1.0.0
+    type: frontend
