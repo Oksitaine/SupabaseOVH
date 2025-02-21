@@ -11,7 +11,8 @@ This repository deploys the complete OVH infrastructure using **Terraform**. Ter
 - **OVH Account:** You must have an account on [OVH](https://www.ovh.com).
 - **Terraform:** Download and install [Terraform](https://www.terraform.io/downloads.html).
 
-> **:information_source: Tip:** Always use the latest stable version of Terraform for best results.
+> [!TIP]
+> Always use the latest stable version of Terraform for best results.
 
 ## Installation & Setup
 
@@ -48,9 +49,10 @@ This repository deploys the complete OVH infrastructure using **Terraform**. Ter
    # Add any additional configuration as required
    ```
 
-   > **:warning: Warning:** Double-check the configuration in `variable.auto.tfvars` before running any Terraform commands to avoid deployment issues.
+> [!IMPORTANT]
+> Double-check the configuration in `variable.auto.tfvars` before running any Terraform commands to avoid deployment issues.
 
-> **:warning: Warning:**  
+> [!CAUTION]
 > When selecting a specific zone for storage and instances, be sure to:
 > - Pre-authorize the chosen regions in your OVH settings. OVH may block regions that have not been pre-authorized.
 > - If you decide not to use the Local Zone for the S3 bucket, manually attach the created user to the S3 bucket via the OVH dashboard, as this configuration is not done automatically.
@@ -79,7 +81,8 @@ This repository deploys the complete OVH infrastructure using **Terraform**. Ter
 - **General Debugging:**  
   Review the Terraform output and logs. Consider using detailed logging options if you run into issues.
 
-> **:information_source: Tip:** Test your changes in a staging environment before applying them to production.
+> [!TIP]
+> Test your changes in a staging environment before applying them to production.
 
 ## Conclusion
 
@@ -91,5 +94,3 @@ This repository uses Terraform to fully manage the OVH infrastructure, including
 
 - [Terraform Documentation](https://www.terraform.io/docs)
 - [OVH Documentation](https://docs.ovh.com)
-
-> **Note:** When creating storage, be mindful of the local zone versus other regions. The first time you create storage in OVH, you may need to accept notifications for the new region.
